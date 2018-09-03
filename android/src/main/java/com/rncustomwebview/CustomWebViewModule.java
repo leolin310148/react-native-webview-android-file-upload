@@ -47,11 +47,6 @@ public class CustomWebViewModule extends ReactContextBaseJavaModule implements A
     // @todo this could be configured from JS
     final String[] DEFAULT_MIME_TYPES = {"image/*", "video/*", "audio/*"};
 
-    final String TAKE_PHOTO = "Take a photo…";
-    final String TAKE_VIDEO = "Record a video…";
-    final String CHOOSE_FILE = "Choose an existing file…";
-    final String CANCEL = "Cancel";
-
     public CustomWebViewModule(ReactApplicationContext context) {
         super(context);
         context.addActivityEventListener(this);
@@ -72,22 +67,22 @@ public class CustomWebViewModule extends ReactContextBaseJavaModule implements A
         // the camera activity doesn't properly return the filename* (I think?) so we use
         // this filename instead
         switch (requestCode) {
-        case REQUEST_CAMERA:
-            if (resultCode == RESULT_OK) {
-                Log.i("RESULT_OK", outputFileUri.toString());
-                filePathCallback.onReceiveValue(new Uri[] { outputFileUri });
-            } else {
-                filePathCallback.onReceiveValue(null);
-            }
-            break;
-        case SELECT_FILE:
-            if (resultCode == RESULT_OK && data != null) {
-                Uri result[] = this.getSelectedFiles(data, resultCode);
-                filePathCallback.onReceiveValue(result);
-            } else {
-                filePathCallback.onReceiveValue(null);
-            }
-            break;
+            case REQUEST_CAMERA:
+                if (resultCode == RESULT_OK) {
+                    Log.i("RESULT_OK", outputFileUri.toString());
+                    filePathCallback.onReceiveValue(new Uri[]{outputFileUri});
+                } else {
+                    filePathCallback.onReceiveValue(null);
+                }
+                break;
+            case SELECT_FILE:
+                if (resultCode == RESULT_OK && data != null) {
+                    Uri result[] = this.getSelectedFiles(data, resultCode);
+                    filePathCallback.onReceiveValue(result);
+                } else {
+                    filePathCallback.onReceiveValue(null);
+                }
+                break;
         }
         this.filePathCallback = null;
     }
@@ -126,7 +121,7 @@ public class CustomWebViewModule extends ReactContextBaseJavaModule implements A
         final CharSequence[] items = getDialogItems(acceptTypes);
 
         android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getCurrentActivity());
-        builder.setTitle("Upload file:");
+        builder.setTitle(getReactApplicationContext().getString(R.string.upload_dialog_title));
 
         // this gets called when the user:
         // 1. chooses "Cancel"
@@ -143,13 +138,13 @@ public class CustomWebViewModule extends ReactContextBaseJavaModule implements A
         builder.setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int item) {
-                if (items[item].equals(TAKE_PHOTO)) {
+                if (items[item].equals(getReactApplicationContext().getString(R.string.upload_dialog_option_take_photo))) {
                     startCamera(MediaStore.ACTION_IMAGE_CAPTURE);
-                } else if (items[item].equals(TAKE_VIDEO)) {
+                } else if (items[item].equals(getReactApplicationContext().getString(R.string.upload_dialog_option_take_video))) {
                     startCamera(MediaStore.ACTION_VIDEO_CAPTURE);
-                } else if (items[item].equals(CHOOSE_FILE)) {
+                } else if (items[item].equals(getReactApplicationContext().getString(R.string.upload_dialog_option_choose_photo))) {
                     startFileChooser(fileChooserParams);
-                } else if (items[item].equals(CANCEL)) {
+                } else if (items[item].equals(getReactApplicationContext().getString(R.string.upload_dialog_option_cancel))) {
                     dialog.cancel();
                 }
             }
@@ -174,8 +169,7 @@ public class CustomWebViewModule extends ReactContextBaseJavaModule implements A
                     if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                         startCamera(intentTypeAfterPermissionGranted);
                         break;
-                    }
-                    else {
+                    } else {
                         filePathCallback.onReceiveValue(null);
                         break;
                     }
@@ -188,10 +182,9 @@ public class CustomWebViewModule extends ReactContextBaseJavaModule implements A
     @TargetApi(Build.VERSION_CODES.M)
     private void requestPermissions() {
         if (getCurrentActivity() instanceof ReactActivity) {
-            ((ReactActivity) getCurrentActivity()).requestPermissions(new String[]{ Manifest.permission.CAMERA}, REQUEST_CAMERA, listener);
-        }
-        else {
-            ((PermissionAwareActivity) getCurrentActivity()).requestPermissions(new String[]{ Manifest.permission.CAMERA}, REQUEST_CAMERA, listener);
+            ((ReactActivity) getCurrentActivity()).requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA, listener);
+        } else {
+            ((PermissionAwareActivity) getCurrentActivity()).requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA, listener);
         }
     }
 
@@ -241,14 +234,14 @@ public class CustomWebViewModule extends ReactContextBaseJavaModule implements A
         List<String> listItems = new ArrayList<String>();
 
         if (acceptsImages(types)) {
-            listItems.add(TAKE_PHOTO);
+            listItems.add(getReactApplicationContext().getString(R.string.upload_dialog_option_take_photo));
         }
         if (acceptsVideo(types)) {
-            listItems.add(TAKE_VIDEO);
+            listItems.add(getReactApplicationContext().getString(R.string.upload_dialog_option_take_video));
         }
 
-        listItems.add(CHOOSE_FILE);
-        listItems.add(CANCEL);
+        listItems.add(getReactApplicationContext().getString(R.string.upload_dialog_option_choose_photo));
+        listItems.add(getReactApplicationContext().getString(R.string.upload_dialog_option_cancel));
 
         return listItems.toArray(new CharSequence[listItems.size()]);
     }
@@ -261,9 +254,9 @@ public class CustomWebViewModule extends ReactContextBaseJavaModule implements A
         return isArrayEmpty(types) || arrayContainsString(types, "video");
     }
 
-    private Boolean arrayContainsString(String[] array, String pattern){
-        for(String content : array){
-            if(content.contains(pattern)){
+    private Boolean arrayContainsString(String[] array, String pattern) {
+        for (String content : array) {
+            if (content.contains(pattern)) {
                 return true;
             }
         }
@@ -309,7 +302,7 @@ public class CustomWebViewModule extends ReactContextBaseJavaModule implements A
             Log.e("CREATE FILE", "Error occurred while creating the File", e);
             e.printStackTrace();
         }
-        return FileProvider.getUriForFile(getReactApplicationContext(), packageName+".fileprovider", capturedFile);
+        return FileProvider.getUriForFile(getReactApplicationContext(), packageName + ".fileprovider", capturedFile);
     }
 
     private Boolean isArrayEmpty(String[] arr) {

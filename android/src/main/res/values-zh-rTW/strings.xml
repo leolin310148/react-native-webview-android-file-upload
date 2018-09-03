@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="upload_dialog_title">上傳檔案</string>
+    <string name="upload_dialog_option_take_photo">拍照</string>
+    <string name="upload_dialog_option_take_video">錄影</string>
+    <string name="upload_dialog_option_choose_photo">從相簿挑選</string>
+    <string name="upload_dialog_option_cancel">取消</string>
+</resources>
